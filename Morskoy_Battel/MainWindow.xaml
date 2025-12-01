@@ -5,8 +5,160 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Morskoy_Battel"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
-    <Grid>
+        Title="Морской Бой - Главное меню" 
+        Height="780" Width="1000"
+        WindowStartupLocation="CenterScreen"
+        Background="#0a192f">
+
+    <Window.Resources>
         
+        <LinearGradientBrush x:Key="OceanGradient" StartPoint="0,0" EndPoint="1,1">
+            <GradientStop Color="#0a192f" Offset="0"/>
+            <GradientStop Color="#112240" Offset="1"/>
+        </LinearGradientBrush>
+
+        <LinearGradientBrush x:Key="ButtonGradient" StartPoint="0,0" EndPoint="0,1">
+            <GradientStop Color="#233554" Offset="0"/>
+            <GradientStop Color="#1a2f4d" Offset="1"/>
+        </LinearGradientBrush>
+
+        <LinearGradientBrush x:Key="ButtonHoverGradient" StartPoint="0,0" EndPoint="0,1">
+            <GradientStop Color="#2d4a72" Offset="0"/>
+            <GradientStop Color="#233554" Offset="1"/>
+        </LinearGradientBrush>
+
+        <Style x:Key="MenuButtonStyle" TargetType="Button">
+            <Setter Property="Width" Value="450"/>
+            <Setter Property="Height" Value="80"/>
+            <Setter Property="FontSize" Value="22"/>
+            <Setter Property="FontWeight" Value="Medium"/>
+            <Setter Property="Foreground" Value="#e6f1ff"/>
+            <Setter Property="Background" Value="{StaticResource ButtonGradient}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+
+            <Setter Property="Margin" Value="0,15"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="8">
+                            <Grid>
+                                
+                                <Border x:Name="glowEffect" Background="#64ffda" Opacity="0" CornerRadius="8" Margin="-3">
+                                    <Border.Effect>
+                                        <BlurEffect Radius="10"/>
+                                    </Border.Effect>
+                                </Border>
+                                
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Margin="15,0"/>
+
+                                <TextBlock Text="{TemplateBinding Tag}" FontSize="24" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="25,0,0,0"/>
+                                
+                            </Grid>
+                            
+                        </Border>
+                        
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background" 
+                                        Value="{StaticResource ButtonHoverGradient}"/>
+                                <Setter TargetName="border" Property="BorderBrush" 
+                                        Value="#64ffda"/>
+                                <Setter TargetName="glowEffect" Property="Opacity" Value="0.1"/>
+                                <Setter Property="RenderTransform">
+                                    <Setter.Value>
+                                        <ScaleTransform ScaleX="1.02" ScaleY="1.02"/>
+                                    </Setter.Value>
+                                </Setter>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter Property="RenderTransform">
+                                    <Setter.Value>
+                                        <ScaleTransform ScaleX="0.98" ScaleY="0.98"/>
+                                    </Setter.Value>
+                                </Setter>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
+    <Grid>
+        <Rectangle>
+            <Rectangle.Fill>
+                <DrawingBrush TileMode="Tile" Viewport="0,0,100,100" ViewportUnits="Absolute">
+                    <DrawingBrush.Drawing>
+                        <GeometryDrawing>
+                            <GeometryDrawing.Geometry>
+                                <GeometryGroup>
+                                    <EllipseGeometry Center="50,50" RadiusX="2" RadiusY="2"/>
+                                </GeometryGroup>
+                            </GeometryDrawing.Geometry>
+                            <GeometryDrawing.Brush>
+                                <SolidColorBrush Color="#112240" Opacity="0.5"/>
+                            </GeometryDrawing.Brush>
+                        </GeometryDrawing>
+                    </DrawingBrush.Drawing>
+                </DrawingBrush>
+            </Rectangle.Fill>
+        </Rectangle>
+
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <StackPanel Grid.Row="0" Margin="0,40">
+
+                <TextBlock Text="⚓ МОРСКОЙ БОЙ ⚓" FontSize="48" FontWeight="Bold" Foreground="#64ffda" HorizontalAlignment="Center" TextAlignment="Center">
+                    <TextBlock.Effect>
+                        <DropShadowEffect ShadowDepth="0" Color="#64ffda" BlurRadius="20" Opacity="0.5"/>
+                    </TextBlock.Effect>
+                </TextBlock>
+
+                <TextBlock Text="Выберите режим игры" FontSize="20" Foreground="#8892b0" HorizontalAlignment="Center" Margin="0,10"/>
+                
+            </StackPanel>
+
+            <StackPanel Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Center">
+
+                <Button Content="Игрок против игрока" Style="{StaticResource MenuButtonStyle}" Tag="👥"/>
+
+                <Button Content="Игрок против бота" Style="{StaticResource MenuButtonStyle}" Tag="🤖"/>
+
+                <Button Content="Бот против бота" Style="{StaticResource MenuButtonStyle}" Tag="⚙️"/>
+
+                <Button Content="Игра по сети" Style="{StaticResource MenuButtonStyle}" Tag="🌐"/>
+
+            </StackPanel>
+
+            <StackPanel Grid.Row="2" Margin="0,0,0,30">
+                <Button Content="Выход" Width="200" Height="50" FontSize="18" Foreground="#e6f1ff" Background="Transparent" BorderBrush="#64ffda" BorderThickness="1" Margin="0,20" HorizontalAlignment="Center" Cursor="Hand">
+                    <Button.Style>
+                        <Style TargetType="Button" BasedOn="{StaticResource MenuButtonStyle}">
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="Button">
+                                        <Border x:Name="border" Background="Transparent" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="8">
+                                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Border>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter TargetName="border" Property="Background" Value="#64ffda"/>
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                        </Style>
+                    </Button.Style>
+                </Button>
+
+            </StackPanel>
+        </Grid>
     </Grid>
 </Window>
