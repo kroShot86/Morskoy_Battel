@@ -37,7 +37,11 @@
                     <Button Content="Авторазмещение" Click="AutoPlaceShips_Click" Margin="0,5" Background="#2A9D8F" Foreground="White" FontSize="16" Height="40" Cursor="Hand"/>
                     <Button Content="Очистить поле" Margin="0,5" Background="#E63946" Foreground="White" FontSize="16" Height="40" Cursor="Hand" Click="ClearField_Click"/>
                     <Button Content="Повернуть корабль" Margin="0,5" Background="#3E92CC" Foreground="White" FontSize="16" Height="40" Cursor="Hand" Click="RotateShip_Click"/>
-                    
+                    <TextBlock x:Name="Difficultt" Text="Сложность (PvE)" Foreground="#64ffda" FontSize="16" Margin="0,10,0,5"/>
+                    <ComboBox x:Name="Difficult" SelectedIndex="0" FontSize="16" Height="30" Width="200">
+                        <ComboBoxItem Content="Лёгкий"/>
+                        <ComboBoxItem Content="Сложный"/>
+                    </ComboBox>
                     <Button x:Name="Next_player" Content="➡ Второй игрок" Margin="0,20,0,0" Background="#6C5CE7" Foreground="White" FontSize="18" Height="45" Cursor="Hand" Click="StartSecondPlayer_Click"/>
                 </StackPanel>
 

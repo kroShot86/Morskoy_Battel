@@ -18,6 +18,7 @@ namespace Morskoy_Battel
         private int[,] player2Field = new int[10, 10];
         private bool isFirstPlayer = true;
         private string mode;
+        private string difficult;
 
         public Rasstonovka(string mode)
         {
@@ -25,6 +26,17 @@ namespace Morskoy_Battel
             this.mode = mode;
             CreatePlayerField();
             AddShips();
+
+            if (mode == "PvP_afk" || mode == "PvP_on")
+            {
+                Difficultt.Visibility = Visibility.Collapsed;
+                Difficult.Visibility = Visibility.Collapsed;
+            }
+            else
+            {
+                Difficult.Visibility = Visibility.Visible;
+                Difficult.Visibility = Visibility.Visible;
+            }
         }
 
         private void SaveCurrentField(int[,] target)
@@ -73,7 +85,7 @@ namespace Morskoy_Battel
 
             if (TitleText.Text == "Ожидание битвы!")
             {
-                Fight win = new Fight(player1Field, player2Field, mode);
+                Fight win = new Fight(player1Field, player2Field, mode, difficult);
                 win.Show();
                 this.Close();
                 return;
@@ -81,6 +93,12 @@ namespace Morskoy_Battel
 
             if (mode == "PvE")
             {
+                if (Difficult.SelectedItem != null)
+                {
+                    ComboBoxItem item = Difficult.SelectedItem as ComboBoxItem;
+                    difficult = item.Content.ToString();
+                }
+
                 AutoPlaceBotShips();
                 TitleText.Text = "Ожидание битвы!";
                 Next_player.Content = "В бой!";
@@ -168,7 +186,6 @@ namespace Morskoy_Battel
             }
         }
 
-        // ---- Остальной код для игрока без изменений ----
 
         private void AutoPlaceShips_Click(object sender, RoutedEventArgs e)
         {

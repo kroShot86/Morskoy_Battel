@@ -18,15 +18,17 @@ namespace Morskoy_Battel
 
         private bool isPlayer1Turn = true;
         private string mode;
+        private string difficulty;
         private Random random = new Random();
 
-        public Fight(int[,] player1Field, int[,] player2Field, string mode)
+        public Fight(int[,] player1Field, int[,] player2Field, string mode, string difficulty)
         {
             InitializeComponent();
 
             this.player1Field = player1Field;
             this.player2Field = player2Field;
             this.mode = mode;
+            this.difficulty = difficulty;
 
             CreateField(Player1FieldContainer, player1Cells);
             CreateField(Player2FieldContainer, player2Cells);
@@ -58,35 +60,23 @@ namespace Morskoy_Battel
                 enemyCells = player1Cells;
             }
 
-            if (!ReferenceEquals(enemyCells[y, x], cell))
-                return;
-
-            if (enemyField[y, x] == 2 || enemyField[y, x] == 3)
-                return;
+            if (!ReferenceEquals(enemyCells[y, x], cell)) return;
+            if (enemyField[y, x] == 2 || enemyField[y, x] == 3) return;
 
             bool hit = ProcessShot(x, y, enemyField, enemyCells);
 
             if (IsVictory(enemyField))
             {
                 string winner;
-                if (mode == "PvE")
-                {
-                    if (isPlayer1Turn) winner = "Вы победили!";
-                    else winner = "Бот победил!";
-                }
-                else
-                {
-                    if (isPlayer1Turn) winner = "Игрок 1 победил!";
-                    else winner = "Игрок 2 победил!";
-                }
+                if (mode == "PvE") winner = isPlayer1Turn ? "Вы победили!" : "Бот победил!";
+                else winner = isPlayer1Turn ? "Игрок 1 победил!" : "Игрок 2 победил!";
 
                 MessageBox.Show(winner, "Победа", MessageBoxButton.OK, MessageBoxImage.Information);
                 GoToMainMenu();
                 return;
             }
 
-            if (!hit)
-                isPlayer1Turn = !isPlayer1Turn;
+            if (!hit) isPlayer1Turn = !isPlayer1Turn;
 
             UpdateTurnText();
             UpdateFieldInteractivity();
@@ -100,8 +90,7 @@ namespace Morskoy_Battel
 
         private bool ProcessShot(int x, int y, int[,] enemyField, Border[,] enemyCells)
         {
-            if (enemyField[y, x] == 2 || enemyField[y, x] == 3)
-                return false;
+            if (enemyField[y, x] == 2 || enemyField[y, x] == 3) return false;
 
             bool hit = false;
 
@@ -110,7 +99,6 @@ namespace Morskoy_Battel
                 enemyField[y, x] = 3;
                 enemyCells[y, x].Background = Brushes.Orange;
                 hit = true;
-
                 if (IsShipDestroyed(enemyField, x, y))
                     MarkShipAsDestroyed(enemyField, enemyCells, x, y);
             }
@@ -125,18 +113,28 @@ namespace Morskoy_Battel
 
         private async Task BotMove()
         {
+            List<Point> targetQueue = new List<Point>();
+            List<Point> hitCells = new List<Point>();
             bool hit;
 
             do
             {
                 int x, y;
 
-                do
+                if (difficulty == "Лёгкий" || targetQueue.Count == 0)
                 {
-                    x = random.Next(10);
-                    y = random.Next(10);
+                    do
+                    {
+                        x = random.Next(10);
+                        y = random.Next(10);
+                    } while (player1Field[y, x] == 2 || player1Field[y, x] == 3);
                 }
-                while (player1Field[y, x] == 2 || player1Field[y, x] == 3);
+                else
+                {
+                    x = (int)targetQueue[0].X;
+                    y = (int)targetQueue[0].Y;
+                    targetQueue.RemoveAt(0);
+                }
 
                 hit = ProcessShot(x, y, player1Field, player1Cells);
 
@@ -147,24 +145,80 @@ namespace Morskoy_Battel
                     return;
                 }
 
-                if (hit)
+                if (hit && difficulty == "Сложный")
                 {
-                    UpdateTurnText();
-                    UpdateFieldInteractivity();
-                    await Task.Delay(700);
+                    hitCells.Add(new Point(x, y));
+                    targetQueue.Clear();
+
+                    if (hitCells.Count == 1)
+                    {
+                        targetQueue.AddRange(GetAdjacentUnhitCells(x, y));
+                    }
+                    else
+                    {
+                        bool horizontal = hitCells[0].Y == hitCells[1].Y;
+                        bool vertical = hitCells[0].X == hitCells[1].X;
+
+                        if (horizontal)
+                        {
+                            hitCells.Sort((a, b) => a.X.CompareTo(b.X));
+                            Point left = new Point((int)hitCells[0].X - 1, (int)hitCells[0].Y);
+                            Point right = new Point((int)hitCells[hitCells.Count - 1].X + 1, (int)hitCells[0].Y);
+                            if (IsValidCell(left)) targetQueue.Add(left);
+                            if (IsValidCell(right)) targetQueue.Add(right);
+                        }
+                        else if (vertical)
+                        {
+                            hitCells.Sort((a, b) => a.Y.CompareTo(b.Y));
+                            Point top = new Point((int)hitCells[0].X, (int)hitCells[0].Y - 1);
+                            Point bottom = new Point((int)hitCells[0].X, (int)hitCells[hitCells.Count - 1].Y + 1);
+                            if (IsValidCell(top)) targetQueue.Add(top);
+                            if (IsValidCell(bottom)) targetQueue.Add(bottom);
+                        }
+                        else
+                        {
+                            Point[] neighbors = GetAdjacentUnhitCells(x, y).ToArray();
+                            foreach (var n in neighbors)
+                                if (IsValidCell(n)) targetQueue.Add(n);
+                        }
+                    }
                 }
 
-            } while (hit);
+                if (hit && difficulty == "Сложный") await Task.Delay(500);
+
+                if (hit && IsShipDestroyed(player1Field, x, y))
+                {
+                    targetQueue.Clear();
+                    hitCells.Clear();
+                }
+
+            } while (hit || (difficulty == "Сложный" && targetQueue.Count > 0));
 
             isPlayer1Turn = true;
             UpdateTurnText();
             UpdateFieldInteractivity();
         }
 
+        private bool IsValidCell(Point p)
+        {
+            int x = (int)p.X;
+            int y = (int)p.Y;
+            return x >= 0 && x < 10 && y >= 0 && y < 10 && (player1Field[y, x] == 0 || player1Field[y, x] == 1);
+        }
+
+        private List<Point> GetAdjacentUnhitCells(int x, int y)
+        {
+            List<Point> neighbors = new List<Point>();
+            if (x > 0 && (player1Field[y, x - 1] == 0 || player1Field[y, x - 1] == 1)) neighbors.Add(new Point(x - 1, y));
+            if (x < 9 && (player1Field[y, x + 1] == 0 || player1Field[y, x + 1] == 1)) neighbors.Add(new Point(x + 1, y));
+            if (y > 0 && (player1Field[y - 1, x] == 0 || player1Field[y - 1, x] == 1)) neighbors.Add(new Point(x, y - 1));
+            if (y < 9 && (player1Field[y + 1, x] == 0 || player1Field[y + 1, x] == 1)) neighbors.Add(new Point(x, y + 1));
+            return neighbors;
+        }
+
         private void UpdateFieldInteractivity()
         {
             for (int y = 0; y < 10; y++)
-            {
                 for (int x = 0; x < 10; x++)
                 {
                     if (mode == "PvE")
@@ -178,81 +232,42 @@ namespace Morskoy_Battel
                         player2Cells[y, x].IsEnabled = isPlayer1Turn;
                     }
                 }
-            }
         }
 
         private void UpdateTurnText()
         {
-            if (mode == "PvE")
-            {
-                if (isPlayer1Turn) CurrentTurnText.Text = "Ваш ход";
-                else CurrentTurnText.Text = "Ход бота";
-            }
-            else
-            {
-                if (isPlayer1Turn) CurrentTurnText.Text = "Ход игрока 1";
-                else CurrentTurnText.Text = "Ход игрока 2";
-            }
+            if (mode == "PvE") CurrentTurnText.Text = isPlayer1Turn ? "Ваш ход" : "Ход бота";
+            else CurrentTurnText.Text = isPlayer1Turn ? "Ход игрока 1" : "Ход игрока 2";
         }
 
         private bool IsVictory(int[,] field)
         {
             for (int y = 0; y < 10; y++)
-            {
                 for (int x = 0; x < 10; x++)
-                {
-                    if (field[y, x] == 1)
-                        return false;
-                }
-            }
+                    if (field[y, x] == 1) return false;
             return true;
         }
 
         private bool IsShipDestroyed(int[,] field, int x, int y)
         {
-            bool horizontal = false;
-            bool vertical = false;
-
-            if (x > 0 && (field[y, x - 1] == 1 || field[y, x - 1] == 3)) horizontal = true;
-            if (x < 9 && (field[y, x + 1] == 1 || field[y, x + 1] == 3)) horizontal = true;
-            if (y > 0 && (field[y - 1, x] == 1 || field[y - 1, x] == 3)) vertical = true;
-            if (y < 9 && (field[y + 1, x] == 1 || field[y + 1, x] == 3)) vertical = true;
+            bool horizontal = (x > 0 && (field[y, x - 1] == 1 || field[y, x - 1] == 3)) || (x < 9 && (field[y, x + 1] == 1 || field[y, x + 1] == 3));
+            bool vertical = (y > 0 && (field[y - 1, x] == 1 || field[y - 1, x] == 3)) || (y < 9 && (field[y + 1, x] == 1 || field[y + 1, x] == 3));
 
             if (horizontal)
             {
                 int xx = x;
-                while (xx >= 0 && (field[y, xx] == 1 || field[y, xx] == 3))
-                {
-                    if (field[y, xx] == 1) return false;
-                    xx--;
-                }
-
+                while (xx >= 0 && (field[y, xx] == 1 || field[y, xx] == 3)) { if (field[y, xx] == 1) return false; xx--; }
                 xx = x + 1;
-                while (xx < 10 && (field[y, xx] == 1 || field[y, xx] == 3))
-                {
-                    if (field[y, xx] == 1) return false;
-                    xx++;
-                }
-
+                while (xx < 10 && (field[y, xx] == 1 || field[y, xx] == 3)) { if (field[y, xx] == 1) return false; xx++; }
                 return true;
             }
 
             if (vertical)
             {
                 int yy = y;
-                while (yy >= 0 && (field[yy, x] == 1 || field[yy, x] == 3))
-                {
-                    if (field[yy, x] == 1) return false;
-                    yy--;
-                }
-
+                while (yy >= 0 && (field[yy, x] == 1 || field[yy, x] == 3)) { if (field[yy, x] == 1) return false; yy--; }
                 yy = y + 1;
-                while (yy < 10 && (field[yy, x] == 1 || field[yy, x] == 3))
-                {
-                    if (field[yy, x] == 1) return false;
-                    yy++;
-                }
-
+                while (yy < 10 && (field[yy, x] == 1 || field[yy, x] == 3)) { if (field[yy, x] == 1) return false; yy++; }
                 return true;
             }
 
@@ -262,51 +277,24 @@ namespace Morskoy_Battel
         private List<Point> GetShipHitCells(int[,] field, int x, int y)
         {
             List<Point> cells = new List<Point>();
-
-            bool horizontal = false;
-            bool vertical = false;
-
-            if (x > 0 && (field[y, x - 1] == 1 || field[y, x - 1] == 3)) horizontal = true;
-            if (x < 9 && (field[y, x + 1] == 1 || field[y, x + 1] == 3)) horizontal = true;
-            if (y > 0 && (field[y - 1, x] == 1 || field[y - 1, x] == 3)) vertical = true;
-            if (y < 9 && (field[y + 1, x] == 1 || field[y + 1, x] == 3)) vertical = true;
+            bool horizontal = (x > 0 && (field[y, x - 1] == 1 || field[y, x - 1] == 3)) || (x < 9 && (field[y, x + 1] == 1 || field[y, x + 1] == 3));
+            bool vertical = (y > 0 && (field[y - 1, x] == 1 || field[y - 1, x] == 3)) || (y < 9 && (field[y + 1, x] == 1 || field[y + 1, x] == 3));
 
             if (horizontal)
             {
                 int xx = x;
-                while (xx >= 0 && (field[y, xx] == 1 || field[y, xx] == 3))
-                {
-                    if (field[y, xx] == 3) cells.Add(new Point(xx, y));
-                    xx--;
-                }
-
+                while (xx >= 0 && (field[y, xx] == 1 || field[y, xx] == 3)) { if (field[y, xx] == 3) cells.Add(new Point(xx, y)); xx--; }
                 xx = x + 1;
-                while (xx < 10 && (field[y, xx] == 1 || field[y, xx] == 3))
-                {
-                    if (field[y, xx] == 3) cells.Add(new Point(xx, y));
-                    xx++;
-                }
+                while (xx < 10 && (field[y, xx] == 1 || field[y, xx] == 3)) { if (field[y, xx] == 3) cells.Add(new Point(xx, y)); xx++; }
             }
             else if (vertical)
             {
                 int yy = y;
-                while (yy >= 0 && (field[yy, x] == 1 || field[yy, x] == 3))
-                {
-                    if (field[yy, x] == 3) cells.Add(new Point(x, yy));
-                    yy--;
-                }
-
+                while (yy >= 0 && (field[yy, x] == 1 || field[yy, x] == 3)) { if (field[yy, x] == 3) cells.Add(new Point(x, yy)); yy--; }
                 yy = y + 1;
-                while (yy < 10 && (field[yy, x] == 1 || field[yy, x] == 3))
-                {
-                    if (field[yy, x] == 3) cells.Add(new Point(x, yy));
-                    yy++;
-                }
+                while (yy < 10 && (field[yy, x] == 1 || field[yy, x] == 3)) { if (field[yy, x] == 3) cells.Add(new Point(x, yy)); yy++; }
             }
-            else
-            {
-                cells.Add(new Point(x, y));
-            }
+            else cells.Add(new Point(x, y));
 
             return cells;
         }
@@ -314,21 +302,17 @@ namespace Morskoy_Battel
         private void MarkShipAsDestroyed(int[,] field, Border[,] cells, int x, int y)
         {
             List<Point> hitCells = GetShipHitCells(field, x, y);
-
             for (int i = 0; i < hitCells.Count; i++)
             {
                 int cx = (int)hitCells[i].X;
                 int cy = (int)hitCells[i].Y;
-
                 cells[cy, cx].Background = Brushes.Red;
             }
         }
 
         private void CreateField(Border container, Border[,] cells)
         {
-            Grid grid = new Grid();
-            grid.Width = 400;
-            grid.Height = 400;
+            Grid grid = new Grid { Width = 400, Height = 400 };
 
             for (int i = 0; i < 10; i++)
             {
@@ -337,7 +321,6 @@ namespace Morskoy_Battel
             }
 
             for (int y = 0; y < 10; y++)
-            {
                 for (int x = 0; x < 10; x++)
                 {
                     Border cell = new Border
@@ -349,22 +332,16 @@ namespace Morskoy_Battel
                     };
 
                     cell.MouseLeftButtonDown += Cell_Click;
-
                     Grid.SetRow(cell, y);
                     Grid.SetColumn(cell, x);
-
                     cells[y, x] = cell;
                     grid.Children.Add(cell);
                 }
-            }
 
             container.Child = grid;
         }
 
-        private void Main_Click(object sender, RoutedEventArgs e)
-        {
-            GoToMainMenu();
-        }
+        private void Main_Click(object sender, RoutedEventArgs e) => GoToMainMenu();
 
         private void GoToMainMenu()
         {
