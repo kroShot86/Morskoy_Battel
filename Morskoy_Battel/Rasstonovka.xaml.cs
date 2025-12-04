@@ -51,6 +51,17 @@ namespace Morskoy_Battel
                     field[y, x] = 0;
         }
 
+        private bool AreAllShipsPlaced()
+        {
+            int count = 0;
+            for (int y = 0; y < 10; y++)
+                for (int x = 0; x < 10; x++)
+                    if (playerCells[y, x].Child != null)
+                        count++;
+
+            return count == 20;
+        }
+
         private void StartSecondPlayer_Click(object sender, RoutedEventArgs e)
         {
             if (Next_player.Content == "В бой!")
@@ -61,7 +72,7 @@ namespace Morskoy_Battel
                 return;
             }
 
-            if (placedShips.Count != 10)
+            if (!AreAllShipsPlaced())
             {
                 MessageBox.Show("Расставьте все корабли!");
                 return;
@@ -70,7 +81,7 @@ namespace Morskoy_Battel
             if (isFirstPlayer)
             {
                 SaveCurrentField(player1Field);
-                MessageBox.Show("Игрок 1 готов. Теперь расставляет Игрок 2!");
+                TitleText.Text = "Игрок 2 — расставьте корабли";
 
                 isFirstPlayer = false;
 
@@ -82,10 +93,10 @@ namespace Morskoy_Battel
             else
             {
                 SaveCurrentField(player2Field);
-                MessageBox.Show("Оба игрока готовы!");
 
                 Next_player.Content = "В бой!";
-                
+                TitleText.Text = "Ожидание битвы!";
+
             }
         }
 
