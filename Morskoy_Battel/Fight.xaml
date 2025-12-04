@@ -1,0 +1,55 @@
+﻿<Window x:Class="Morskoy_Battel.Fight"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Morskoy_Battel"
+        mc:Ignorable="d"
+        Title="Морской бой"
+        Height="800" Width="1000"
+        WindowStartupLocation="CenterScreen"
+        Background="#0a192f">
+
+    <Grid Margin="20">
+        <Rectangle IsHitTestVisible="False">
+            <Rectangle.Fill>
+                <DrawingBrush TileMode="Tile" Viewport="0,0,100,100" ViewportUnits="Absolute">
+                    <DrawingBrush.Drawing>
+                        <GeometryDrawing>
+                            <GeometryDrawing.Geometry>
+                                <EllipseGeometry Center="50,50" RadiusX="2" RadiusY="2"/>
+                            </GeometryDrawing.Geometry>
+                            <GeometryDrawing.Brush>
+                                <SolidColorBrush Color="#112240" Opacity="0.5"/>
+                            </GeometryDrawing.Brush>
+                        </GeometryDrawing>
+                    </DrawingBrush.Drawing>
+                </DrawingBrush>
+            </Rectangle.Fill>
+        </Rectangle>
+
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <TextBlock x:Name="CurrentTurnText" Text="Ход игрока 1" Foreground="#64ffda" FontSize="28" FontWeight="Bold" HorizontalAlignment="Center" Margin="0,0,0,20" Grid.Row="0"/>
+
+            <Grid Grid.Row="1">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <Border x:Name="Player1FieldContainer" Width="400" Height="400" Background="#10243b" BorderBrush="#1f3557" BorderThickness="2" HorizontalAlignment="Center" VerticalAlignment="Center" Grid.Column="0"/>
+
+                <Button x:Name="Main" Content="В меню" Width="100" Height="50" Background="#E63946" Foreground="White" FontSize="16" Cursor="Hand" HorizontalAlignment="Center" VerticalAlignment="Center" Grid.Column="1" Click="Main_Click"/>
+
+                <Border x:Name="Player2FieldContainer" Width="400" Height="400" Background="#10243b" BorderBrush="#1f3557" BorderThickness="2" HorizontalAlignment="Center" VerticalAlignment="Center" Grid.Column="2"/>
+                
+            </Grid>
+        </Grid>
+    </Grid>
+</Window>
