@@ -126,13 +126,12 @@
 
             <StackPanel Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Center">
 
+                <Button x:Name="PvP_on" Content="Игра по сети" Style="{StaticResource MenuButtonStyle}" Tag="🌐" Click="PvP_on_Click"/>
+
                 <Button x:Name="PvP_afk" Content="Игрок против игрока" Style="{StaticResource MenuButtonStyle}" Tag="👥" Click="PvP_afk_Click"/>
 
                 <Button x:Name="PvE" Content="Игрок против бота" Style="{StaticResource MenuButtonStyle}" Tag="🤖" Click="PvE_Click"/>
 
-                <Button x:Name="EvE" Content="Бот против бота" Style="{StaticResource MenuButtonStyle}" Tag="⚙️" Click="EvE_Click"/>
-
-                <Button x:Name="PvP_on" Content="Игра по сети" Style="{StaticResource MenuButtonStyle}" Tag="🌐" Click="PvP_on_Click"/>
 
             </StackPanel>
 

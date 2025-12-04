@@ -21,7 +21,7 @@ namespace Morskoy_Battel
     public partial class MainWindow : Window
     {
 
-        string regim;
+        string mod;
         public MainWindow()
         {
             InitializeComponent();
@@ -34,32 +34,26 @@ namespace Morskoy_Battel
 
         private void OpenRasstanovka(object sender, RoutedEventArgs e)
         {
-            Rasstonovka win = new Rasstonovka();
+            Rasstonovka win = new Rasstonovka(mod);
             win.Show();
             this.Close();
         }
 
         private void PvP_afk_Click(object sender, RoutedEventArgs e)
         {
-            regim = "PvP_afk";
+            mod = "PvP_afk";
             OpenRasstanovka(sender, e);
         }
 
         private void PvE_Click(object sender, RoutedEventArgs e)
         {
-            regim = "PvE";
-            OpenRasstanovka(sender, e);
-        }
-
-        private void EvE_Click(object sender, RoutedEventArgs e)
-        {
-            regim = "EvE";
+            mod = "PvE";
             OpenRasstanovka(sender, e);
         }
 
         private void PvP_on_Click(object sender, RoutedEventArgs e)
         {
-            regim = "PvP_on";
+            mod = "PvP_on";
             OpenRasstanovka(sender, e);
         }
     }

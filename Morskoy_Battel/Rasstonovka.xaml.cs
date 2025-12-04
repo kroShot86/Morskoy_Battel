@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -18,11 +17,12 @@ namespace Morskoy_Battel
         private int[,] player1Field = new int[10, 10];
         private int[,] player2Field = new int[10, 10];
         private bool isFirstPlayer = true;
-        private int[,] field = new int[10, 10];
+        private string mode;
 
-        public Rasstonovka()
+        public Rasstonovka(string mode)
         {
             InitializeComponent();
+            this.mode = mode;
             CreatePlayerField();
             AddShips();
         }
@@ -48,7 +48,7 @@ namespace Morskoy_Battel
         {
             for (int y = 0; y < 10; y++)
                 for (int x = 0; x < 10; x++)
-                    field[y, x] = 0;
+                    player1Field[y, x] = 0;
         }
 
         private bool AreAllShipsPlaced()
@@ -58,46 +58,149 @@ namespace Morskoy_Battel
                 for (int x = 0; x < 10; x++)
                     if (playerCells[y, x].Child != null)
                         count++;
-
             return count == 20;
         }
 
         private void StartSecondPlayer_Click(object sender, RoutedEventArgs e)
         {
-            if (Next_player.Content == "В бой!")
-            {
-                Fight win = new Fight(player1Field, player2Field);
-                win.Show();
-                this.Close();
-                return;
-            }
-
             if (!AreAllShipsPlaced())
             {
                 MessageBox.Show("Расставьте все корабли!");
                 return;
             }
 
-            if (isFirstPlayer)
+            SaveCurrentField(player1Field);
+
+            if (TitleText.Text == "Ожидание битвы!")
             {
-                SaveCurrentField(player1Field);
-                TitleText.Text = "Игрок 2 — расставьте корабли";
+                Fight win = new Fight(player1Field, player2Field, mode);
+                win.Show();
+                this.Close();
+                return;
+            }
 
-                isFirstPlayer = false;
+            if (mode == "PvE")
+            {
+                AutoPlaceBotShips();
+                TitleText.Text = "Ожидание битвы!";
+                Next_player.Content = "В бой!";
+            }
+            else if (mode == "PvP_afk")
+            {
+                if (isFirstPlayer)
+                {
+                    TitleText.Text = "Игрок 2 — расставьте корабли";
+                    isFirstPlayer = false;
+                    ClearFieldArray();
+                    ResetVisual();
+                    Next_player.Content = "Игрок 2 готов";
+                }
+                else
+                {
+                    SaveCurrentField(player2Field);
+                    Next_player.Content = "В бой!";
+                    TitleText.Text = "Ожидание битвы!";
+                }
+            }
+        }
 
-                ClearFieldArray();
-                ResetVisual();
+        // ---- Исправленный метод авторасстановки бота ----
+        private void AutoPlaceBotShips()
+        {
+            int[] shipSizes = { 4, 3, 3, 2, 2, 2, 1, 1, 1, 1 };
+            for (int i = 0; i < shipSizes.Length; i++)
+            {
+                int size = shipSizes[i];
+                bool placed = false;
+                while (!placed)
+                {
+                    int startX = random.Next(10);
+                    int startY = random.Next(10);
+                    bool isHorizontal = random.Next(2) == 0;
+                    if (CanPlaceBotShip(startX, startY, size, isHorizontal))
+                    {
+                        PlaceBotShip(size, startX, startY, isHorizontal);
+                        placed = true;
+                    }
+                }
+            }
+        }
 
-                Next_player.Content = "Игрок 2 готов";
+        private bool CanPlaceBotShip(int x, int y, int size, bool horizontal)
+        {
+            if (horizontal)
+            {
+                if (x + size > 10) return false;
+                for (int i = 0; i < size; i++)
+                    if (!IsCellAvailableForBot(x + i, y)) return false;
             }
             else
             {
-                SaveCurrentField(player2Field);
-
-                Next_player.Content = "В бой!";
-                TitleText.Text = "Ожидание битвы!";
-
+                if (y + size > 10) return false;
+                for (int i = 0; i < size; i++)
+                    if (!IsCellAvailableForBot(x, y + i)) return false;
             }
+            return true;
+        }
+
+        private bool IsCellAvailableForBot(int x, int y)
+        {
+            for (int dx = -1; dx <= 1; dx++)
+                for (int dy = -1; dy <= 1; dy++)
+                {
+                    int xx = x + dx;
+                    int yy = y + dy;
+                    if (xx >= 0 && xx < 10 && yy >= 0 && yy < 10)
+                        if (player2Field[yy, xx] != 0)
+                            return false;
+                }
+            return true;
+        }
+
+        private void PlaceBotShip(int size, int x, int y, bool horizontal)
+        {
+            for (int i = 0; i < size; i++)
+            {
+                if (horizontal)
+                    player2Field[y, x + i] = 1;
+                else
+                    player2Field[y + i, x] = 1;
+            }
+        }
+
+        // ---- Остальной код для игрока без изменений ----
+
+        private void AutoPlaceShips_Click(object sender, RoutedEventArgs e)
+        {
+            ClearFieldArray();
+            ResetVisual();
+
+            int[] shipSizes = { 4, 3, 3, 2, 2, 2, 1, 1, 1, 1 };
+            placedShips.Clear();
+
+            foreach (int size in shipSizes)
+            {
+                bool placed = false;
+                while (!placed)
+                {
+                    int startX = random.Next(10);
+                    int startY = random.Next(10);
+                    bool isHorizontal = random.Next(2) == 0;
+
+                    if (CanPlaceShip(startX, startY, size, isHorizontal))
+                    {
+                        var ship = new ShipControl(size)
+                        {
+                            IsHorizontal = isHorizontal
+                        };
+                        ship.UpdateSize();
+                        PlaceShipOnField(ship, startX, startY, addToPlacedShips: true);
+                        placed = true;
+                    }
+                }
+            }
+
+            ShipsPanel.Children.Clear();
         }
 
         private void CreatePlayerField()
@@ -141,16 +244,12 @@ namespace Morskoy_Battel
         {
             ShipsPanel.Children.Clear();
 
-            // 4
             ShipsPanel.Children.Add(CreateShip(4));
-            // 3
             ShipsPanel.Children.Add(CreateShip(3));
             ShipsPanel.Children.Add(CreateShip(3));
-            // 2
             ShipsPanel.Children.Add(CreateShip(2));
             ShipsPanel.Children.Add(CreateShip(2));
             ShipsPanel.Children.Add(CreateShip(2));
-            // 1
             ShipsPanel.Children.Add(CreateShip(1));
             ShipsPanel.Children.Add(CreateShip(1));
             ShipsPanel.Children.Add(CreateShip(1));
@@ -162,49 +261,6 @@ namespace Morskoy_Battel
             ShipControl ship = new ShipControl(size);
             ship.MouseLeftButtonDown += (s, e) => selectedShip = ship;
             return ship;
-        }
-
-        private void AutoPlaceShips_Click(object sender, RoutedEventArgs e)
-        {
-            ClearFieldArray();
-            ResetVisual();
-
-            int[] shipSizes = { 4, 3, 3, 2, 2, 2, 1, 1, 1, 1 };
-
-            placedShips.Clear();
-
-            foreach (int size in shipSizes)
-            {
-                bool placed = false;
-
-                while (!placed)
-                {
-                    int startX = random.Next(10);
-                    int startY = random.Next(10);
-                    bool isHorizontal = random.Next(2) == 0;
-
-                    if (CanPlaceShip(startX, startY, size, isHorizontal))
-                    {
-                        var ship = new ShipControl(size)
-                        {
-                            IsHorizontal = isHorizontal
-                        };
-                        ship.UpdateSize();
-
-                        PlaceShipOnField(ship, startX, startY, addToPlacedShips: true);
-
-                        placed = true;
-                    }
-                }
-            }
-
-            ShipsPanel.Children.Clear();
-        }
-
-        private void ClearField_Click(object sender, RoutedEventArgs e)
-        {
-            ResetVisual();
-            ClearFieldArray();
         }
 
         private void Cell_Drop(object sender, DragEventArgs e)
@@ -242,7 +298,6 @@ namespace Morskoy_Battel
                 for (int i = 0; i < size; i++)
                     if (!IsCellAvailableForShip(x, y + i)) return false;
             }
-
             return true;
         }
 
@@ -274,7 +329,6 @@ namespace Morskoy_Battel
                 int yy = y + (ship.IsHorizontal ? 0 : i);
 
                 Border part = CreateShipPart(ship, i);
-
                 playerCells[yy, xx].Child = part;
                 ship.OccupiedCells.Add(new Point(xx, yy));
             }
@@ -360,6 +414,20 @@ namespace Morskoy_Battel
                 else
                     ShowPlacementError(selectedShip);
             }
+        }
+
+        private void ClearField_Click(object sender, RoutedEventArgs e)
+        {
+            for (int row = 0; row < 10; row++)
+                for (int col = 0; col < 10; col++)
+                    playerCells[row, col].Child = null;
+
+            placedShips.Clear();
+            AddShips();
+
+            for (int y = 0; y < 10; y++)
+                for (int x = 0; x < 10; x++)
+                    player1Field[y, x] = 0;
         }
     }
 
