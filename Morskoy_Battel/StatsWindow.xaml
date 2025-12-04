@@ -1,0 +1,65 @@
+﻿<Window x:Class="Morskoy_Battel.StatsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="📊 Статистика (только PvP)" 
+        Height="600" Width="800"
+        Background="#0a192f"
+        WindowStartupLocation="CenterOwner"
+        FontFamily="Segoe UI">
+
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock Text="История PvP-игр" 
+                   FontSize="28" 
+                   FontWeight="Bold" 
+                   Foreground="#64ffda" 
+                   Margin="0,0,0,20" 
+                   HorizontalAlignment="Center"/>
+
+        <DataGrid x:Name="StatsDataGrid"
+                  Grid.Row="1"
+                  AutoGenerateColumns="False"
+                  IsReadOnly="True"
+                  CanUserAddRows="False"
+                  CanUserDeleteRows="False"
+                  CanUserSortColumns="True"
+                  Background="#0e2345"
+                  RowHeight="30"
+                  SelectionMode="Single"
+                  BorderBrush="#1a2f4d"
+                  BorderThickness="1"
+                  AlternatingRowBackground="Transparent"> 
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Дата" Binding="{Binding Date, StringFormat=dd.MM.yyyy HH:mm}" Width="130"/>
+                <DataGridTextColumn Header="Режим" Binding="{Binding Mode}" Width="100"/>
+                <DataGridTextColumn Header="Противник" Binding="{Binding OpponentName}" Width="140"/>
+                <DataGridTextColumn Header="Рейтинг противника" Binding="{Binding OpponentRating}" Width="130"/>
+                <DataGridTextColumn Header="Результат" Binding="{Binding Result}" Width="100"/>
+                <DataGridTextColumn Header="Изменение рейтинга" Binding="{Binding RatingChange, StringFormat=+#;-#;0}" Width="140"/>
+            </DataGrid.Columns>
+
+            <DataGrid.RowStyle>
+                <Style TargetType="DataGridRow">
+                    
+                    <Setter Property="Background" Value="#0e2345"/>
+                    <Setter Property="Foreground" Value="#e6f1ff"/>
+
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding IsWin}" Value="True">
+                            <Setter Property="Foreground" Value="#64ffda"/>
+                            <Setter Property="Background" Value="#0f2a3d"/>    
+						</DataTrigger>
+                        <DataTrigger Binding="{Binding IsWin}" Value="False">
+                            <Setter Property="Foreground" Value="#ff6b6b"/>
+                            <Setter Property="Background" Value="#2a1a1f"/>           
+						</DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </DataGrid.RowStyle>
+        </DataGrid>
+    </Grid>
+</Window>

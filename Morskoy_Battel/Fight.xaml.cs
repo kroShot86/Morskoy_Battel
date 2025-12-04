@@ -69,8 +69,22 @@ namespace Morskoy_Battel
             {
                 string winner;
                 if (mode == "PvE") winner = isPlayer1Turn ? "Вы победили!" : "Бот победил!";
-                else winner = isPlayer1Turn ? "Игрок 1 победил!" : "Игрок 2 победил!";
+                else
+                {
+                    winner = isPlayer1Turn ? "Игрок 1 победил!" : "Игрок 2 победил!";
+                    string opponent = isPlayer1Turn ? "Игрок 1" : "Игрок 2";
+                    bool playerWon = isPlayer1Turn;
+                    int opponentRating = 1200; // или из профиля
+                    int ratingChange = playerWon ? 15 : -10;
 
+                    StatsManager.Instance.AddGameResult(
+                        mode: "PvP_afk",
+                        opponentName: opponent,
+                        opponentRating: opponentRating,
+                        isWin: playerWon,
+                        ratingChange: ratingChange
+                    );
+                }
                 MessageBox.Show(winner, "Победа", MessageBoxButton.OK, MessageBoxImage.Information);
                 GoToMainMenu();
                 return;

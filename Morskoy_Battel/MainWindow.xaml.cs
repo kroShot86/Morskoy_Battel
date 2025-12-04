@@ -56,5 +56,11 @@ namespace Morskoy_Battel
             mod = "PvP_on";
             OpenRasstanovka(sender, e);
         }
+        private void Stats_Click(object sender, RoutedEventArgs e)
+        {
+            var statsWindow = new StatsWindow();
+            statsWindow.Show();
+            
+        }
     }
 }

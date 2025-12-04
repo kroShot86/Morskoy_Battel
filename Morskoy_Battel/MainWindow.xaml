@@ -132,7 +132,8 @@
 
                 <Button x:Name="PvE" Content="Игрок против бота" Style="{StaticResource MenuButtonStyle}" Tag="🤖" Click="PvE_Click"/>
 
-
+                <Button x:Name="Stats" Content="Статистика" Style="{StaticResource MenuButtonStyle}" Tag="📊" Click="Stats_Click"/>
+                
             </StackPanel>
 
             <StackPanel Grid.Row="2" Margin="0,0,0,30">
